@@ -9,6 +9,7 @@ import { RadioCard } from '@/components/ui/RadioCard';
 import { Toggle } from '@/components/ui/Toggle';
 import { Button } from '@/components/ui/Button';
 import { VideoUpload } from './VideoUpload';
+import { PreviewModal } from './PreviewModal';
 import type { Tier, OutputFormat } from '@/types';
 import { TemplateSelector, getRandomTemplateId } from './TemplateSelector';
 
@@ -36,12 +37,16 @@ export function WishForm() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [template, setTemplate] = useState(() => getRandomTemplateId());
+  const [previewOpen, setPreviewOpen] = useState(false);
 
   const needsVideo = tier === 'text_video';
   const canSubmit =
     senderName && senderEmail && recipientName && message &&
     (!needsVideo || mediaUrl) &&
     (!sendEmail || recipientEmail);
+
+  // preview only needs a message to be worth showing — not gated on the full form being valid
+  const canPreview = message.trim().length > 0;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -82,56 +87,82 @@ export function WishForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="max-w-lg mx-auto space-y-8 px-6 py-12">
-      <motion.div initial="hidden" animate="visible" custom={0} variants={fadeUp} className="space-y-3">
-        <p className="font-medium text-gray-900">Choose your tier</p>
-        <div className="grid grid-cols-2 gap-3">
-          <RadioCard name="tier" value="text" checked={tier === 'text'} onChange={(v) => setTier(v as Tier)} title="Text only" subtitle="₦250" />
-          <RadioCard name="tier" value="text_video" checked={tier === 'text_video'} onChange={(v) => setTier(v as Tier)} title="Text + Video" subtitle="₦500" />
-        </div>
-      </motion.div>
-
-      <motion.div initial="hidden" animate="visible" custom={1} variants={fadeUp} className="space-y-3">
-        <p className="font-medium text-gray-900">How should they receive it?</p>
-        <div className="grid grid-cols-2 gap-3">
-          <RadioCard name="outputFormat" value="link" checked={outputFormat === 'link'} onChange={(v) => setOutputFormat(v as OutputFormat)} title="Link" />
-          <RadioCard name="outputFormat" value="qr" checked={outputFormat === 'qr'} onChange={(v) => setOutputFormat(v as OutputFormat)} title="QR Code" />
-        </div>
-      </motion.div>
-
-      <motion.div initial="hidden" animate="visible" custom={2} variants={fadeUp}>
-        <TemplateSelector value={template} onChange={setTemplate} />
-      </motion.div>
-
-      <motion.div initial="hidden" animate="visible" custom={3} variants={fadeUp} className="space-y-8">
-        <Input label="Your name" id="senderName" value={senderName} onChange={(e) => setSenderName(e.target.value)} required />
-        <Input label="Your email (for receipt)" id="senderEmail" type="email" value={senderEmail} onChange={(e) => setSenderEmail(e.target.value)} required />
-        <Input label="Recipient's name" id="recipientName" value={recipientName} onChange={(e) => setRecipientName(e.target.value)} required />
-        <TextArea label="Your message" id="message" value={message} onChange={(e) => setMessage(e.target.value)} required />
-      </motion.div>
-
-      {needsVideo && (
-        <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} transition={{ duration: 0.3 }}>
-          <VideoUpload onUploaded={setMediaUrl} />
+    <>
+      <form onSubmit={handleSubmit} className="w-full max-w-lg lg:max-w-none mx-auto lg:mx-0 space-y-8 px-6 lg:px-16 py-12">
+        <motion.div initial="hidden" animate="visible" custom={0} variants={fadeUp} className="space-y-3">
+          <p className="font-medium text-gray-900">Choose your tier</p>
+          <div className="grid grid-cols-2 gap-3">
+            <RadioCard name="tier" value="text" checked={tier === 'text'} onChange={(v) => setTier(v as Tier)} title="Text only" subtitle="₦250" />
+            <RadioCard name="tier" value="text_video" checked={tier === 'text_video'} onChange={(v) => setTier(v as Tier)} title="Text + Video" subtitle="₦500" />
+          </div>
         </motion.div>
-      )}
 
-      <motion.div initial="hidden" animate="visible" custom={4} variants={fadeUp} className="border-t pt-4">
-        <Toggle checked={sendEmail} onChange={setSendEmail} label="Also email this to them" />
-        {sendEmail && (
-          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} transition={{ duration: 0.3 }} className="mt-3">
-            <Input label="Recipient's email" id="recipientEmail" type="email" value={recipientEmail} onChange={(e) => setRecipientEmail(e.target.value)} required={sendEmail} />
+        <motion.div initial="hidden" animate="visible" custom={1} variants={fadeUp} className="space-y-3">
+          <p className="font-medium text-gray-900">How should they receive it?</p>
+          <div className="grid grid-cols-2 gap-3">
+            <RadioCard name="outputFormat" value="link" checked={outputFormat === 'link'} onChange={(v) => setOutputFormat(v as OutputFormat)} title="Link" />
+            <RadioCard name="outputFormat" value="qr" checked={outputFormat === 'qr'} onChange={(v) => setOutputFormat(v as OutputFormat)} title="QR Code" />
+          </div>
+        </motion.div>
+
+        <motion.div initial="hidden" animate="visible" custom={2} variants={fadeUp}>
+          <TemplateSelector value={template} onChange={setTemplate} />
+        </motion.div>
+
+        <motion.div initial="hidden" animate="visible" custom={3} variants={fadeUp} className="space-y-8">
+          <Input label="Your name" id="senderName" value={senderName} onChange={(e) => setSenderName(e.target.value)} required />
+          <Input label="Your email (for receipt)" id="senderEmail" type="email" value={senderEmail} onChange={(e) => setSenderEmail(e.target.value)} required />
+          <Input label="Recipient's name" id="recipientName" value={recipientName} onChange={(e) => setRecipientName(e.target.value)} required />
+          <TextArea label="Your message" id="message" value={message} onChange={(e) => setMessage(e.target.value)} required />
+        </motion.div>
+
+        {needsVideo && (
+          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} transition={{ duration: 0.3 }}>
+            <VideoUpload onUploaded={setMediaUrl} />
           </motion.div>
         )}
-      </motion.div>
 
-      {error && <p className="text-sm text-red-600">{error}</p>}
+        <motion.div initial="hidden" animate="visible" custom={4} variants={fadeUp} className="border-t pt-4">
+          <Toggle checked={sendEmail} onChange={setSendEmail} label="Also email this to them" />
+          {sendEmail && (
+            <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} transition={{ duration: 0.3 }} className="mt-3">
+              <Input label="Recipient's email" id="recipientEmail" type="email" value={recipientEmail} onChange={(e) => setRecipientEmail(e.target.value)} required={sendEmail} />
+            </motion.div>
+          )}
+        </motion.div>
 
-      <motion.div whileTap={{ scale: 0.98 }}>
-        <Button type="submit" disabled={!canSubmit} loading={submitting} className="w-full">
-          Continue to payment
-        </Button>
-      </motion.div>
-    </form>
+        {error && <p className="text-sm text-red-600">{error}</p>}
+
+        <div className="space-y-3">
+          <motion.div whileTap={{ scale: 0.98 }}>
+            <Button type="submit" disabled={!canSubmit} loading={submitting} className="w-full">
+              Continue to payment
+            </Button>
+          </motion.div>
+
+          <motion.div whileTap={{ scale: 0.98 }}>
+            <Button
+              type="button"
+              variant="secondary"
+              disabled={!canPreview}
+              onClick={() => setPreviewOpen(true)}
+              className="w-full"
+            >
+              Preview
+            </Button>
+          </motion.div>
+        </div>
+      </form>
+
+      <PreviewModal
+        open={previewOpen}
+        onClose={() => setPreviewOpen(false)}
+        template={template}
+        senderName={senderName}
+        recipientName={recipientName}
+        message={message}
+        mediaUrl={mediaUrl}
+      />
+    </>
   );
 }

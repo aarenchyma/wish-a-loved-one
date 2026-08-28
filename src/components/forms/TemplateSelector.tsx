@@ -2,13 +2,13 @@
 
 import { getTemplateComponent, AVAILABLE_TEMPLATE_IDS } from '@/components/templates';
 
-const TEMPLATE_NAMES: Record<string, string> = {
-  template_01: 'Sunset',
-  template_02: 'Ocean',
-  template_03: 'Meadow',
-  template_04: 'Lavender',
-  template_05: 'Midnight',
-  template_06: 'Peach',
+const EVENT_LABELS: Record<string, string> = {
+  valentine: 'Valentine',
+  birthday: 'Birthday',
+  anniversary: 'Anniversary',
+  graduation: 'Graduation',
+  wedding: 'Wedding',
+  newyear: 'New Year',
 };
 
 interface TemplateSelectorProps {
@@ -19,7 +19,7 @@ interface TemplateSelectorProps {
 export function TemplateSelector({ value, onChange }: TemplateSelectorProps) {
   return (
     <div className="space-y-3">
-      <p className="font-medium text-gray-900">Choose a design</p>
+      <p className="font-medium text-gray-900">Choose an occasion</p>
       <div className="grid grid-cols-3 gap-3">
         {AVAILABLE_TEMPLATE_IDS.map((id) => {
           const Template = getTemplateComponent(id);
@@ -39,11 +39,11 @@ export function TemplateSelector({ value, onChange }: TemplateSelectorProps) {
                   className="absolute top-0 left-0 origin-top-left"
                   style={{ width: '400%', height: '400%', transform: 'scale(0.25)' }}
                 >
-                  <Template senderName="Alex" recipientName="Joshua" message="Wishing you the best day ever!" />
+                  <Template senderName="Alex" recipientName="Sam" message="Wishing you the best day ever!" />
                 </div>
               </div>
               <p className="text-xs text-center py-1.5 text-gray-600 border-t">
-                {TEMPLATE_NAMES[id] ?? id}
+                {EVENT_LABELS[id] ?? id}
               </p>
             </button>
           );

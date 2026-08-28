@@ -20,7 +20,6 @@ export default function Template01({ senderName, recipientName, message, mediaUr
   const loveEmojis = ['❤️', '💕', '💗', '💖', '💝', '💓', '💞'];
 
   useEffect(() => {
-    // Initialize falling loves
     const initialLoves: FallingLove[] = [];
     for (let i = 0; i < 40; i++) {
       initialLoves.push({
@@ -35,67 +34,37 @@ export default function Template01({ senderName, recipientName, message, mediaUr
     }
     setLoves(initialLoves);
 
-    // Animation loop - moving UP only
     const animate = () => {
-      setLoves(prevLoves => 
+      setLoves(prevLoves =>
         prevLoves.map(love => {
           let newY = love.y - love.speed;
-          
-          // Reset to bottom when goes off top
-          if (newY < -10) {
-            newY = 110;
-          }
-          
-          return {
-            ...love,
-            y: newY,
-          };
+          if (newY < -10) newY = 110;
+          return { ...love, y: newY };
         })
       );
-      
       animationRef.current = requestAnimationFrame(animate);
     };
 
     animationRef.current = requestAnimationFrame(animate);
-
     return () => {
-      if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current);
-      }
+      if (animationRef.current) cancelAnimationFrame(animationRef.current);
     };
   }, []);
 
   return (
     <>
-      {/* Custom scrollbar - pink/red theme */}
       <style jsx global>{`
-        ::-webkit-scrollbar {
-          width: 8px;
-        }
-        
-        ::-webkit-scrollbar-track {
-          background: #ffcdd2;
-        }
-        
-        ::-webkit-scrollbar-thumb {
-          background: #e53935;
-          border-radius: 10px;
-        }
-        
-        ::-webkit-scrollbar-thumb:hover {
-          background: #c62828;
-        }
-        
-        * {
-          scrollbar-width: thin;
-          scrollbar-color: #e53935 #ffcdd2;
-        }
+        @import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600;700&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&display=swap');
+
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #ffcdd2; }
+        ::-webkit-scrollbar-thumb { background: #e53935; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #c62828; }
+        * { scrollbar-width: thin; scrollbar-color: #e53935 #ffcdd2; }
       `}</style>
 
-      {/* Background - more red/pink-red like your picture */}
       <div className="relative min-h-screen flex items-center justify-center px-6 py-12 overflow-hidden" style={{ background: 'linear-gradient(135deg, #ffcdd2 0%, #ef9a9a 50%, #e57373 100%)' }}>
-        
-        {/* Upward rain only */}
+
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
           {loves.map((love) => (
             <div
@@ -114,12 +83,24 @@ export default function Template01({ senderName, recipientName, message, mediaUr
           ))}
         </div>
 
-        {/* Your original content */}
-        <div className="relative max-w-lg w-full text-center space-y-6 z-10">
-          <p className="text-sm uppercase tracking-widest text-pink-500 font-medium">
+        <div className="relative max-w-lg w-full text-center space-y-7 z-10">
+          <p
+            className="text-xs uppercase tracking-[0.25em] font-semibold"
+            style={{ color: '#b71c1c', fontFamily: "'Cormorant Garamond', serif" }}
+          >
             A wish for you
           </p>
-          <h1 className="text-4xl font-bold text-gray-900">{recipientName} 🎉</h1>
+
+          <h1
+            className="text-6xl sm:text-7xl leading-tight"
+            style={{
+              fontFamily: "'Dancing Script', cursive",
+              color: '#7f1d1d',
+              textShadow: '0 2px 12px rgba(255,255,255,0.5)',
+            }}
+          >
+            {recipientName} 💕
+          </h1>
 
           {mediaUrl && (
             <video
@@ -130,11 +111,28 @@ export default function Template01({ senderName, recipientName, message, mediaUr
             />
           )}
 
-          <p className="text-lg text-gray-700 leading-relaxed whitespace-pre-wrap">
+          <p
+            className="text-xl sm:text-2xl leading-relaxed whitespace-pre-wrap px-2"
+            style={{
+              fontFamily: "'Cormorant Garamond', serif",
+              fontStyle: 'italic',
+              fontWeight: 500,
+              color: '#3f0d0d',
+            }}
+          >
             {message}
           </p>
 
-          <p className="text-sm text-gray-500 pt-4">— from {senderName}</p>
+          <p
+            className="text-lg pt-4"
+            style={{
+              fontFamily: "'Dancing Script', cursive",
+              fontWeight: 600,
+              color: '#7f1d1d',
+            }}
+          >
+            — from {senderName}
+          </p>
         </div>
       </div>
     </>
