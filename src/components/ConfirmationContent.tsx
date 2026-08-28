@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { motion } from 'framer-motion';
 import { QrCodeCard } from './QrCodeCard';
 import { Button } from './ui/Button';
 
@@ -11,6 +12,73 @@ interface OrderStatus {
   outputFormat: 'link' | 'qr';
   recipientEmail?: string;
   sendEmail: boolean;
+}
+
+interface Heart {
+  id: number;
+  x: number;
+  y: number;
+  size: number;
+  phase: number;
+  speed: number;
+}
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 16 },
+  visible: (i: number) => ({
+    opacity: 1,
+    y: 0,
+    transition: { delay: i * 0.1, duration: 0.4 },
+  }),
+};
+
+function AmbientHearts() {
+  const [hearts, setHearts] = useState<Heart[]>([]);
+  const animationRef = useRef<number>(0);
+
+  useEffect(() => {
+    const initial: Heart[] = [];
+    for (let i = 0; i < 24; i++) {
+      initial.push({
+        id: i,
+        x: Math.random() * 100,
+        y: Math.random() * 100,
+        size: Math.random() * 18 + 14,
+        phase: Math.random() * Math.PI * 2,
+        speed: Math.random() * 0.02 + 0.008,
+      });
+    }
+    setHearts(initial);
+
+    const animate = () => {
+      setHearts((prev) => prev.map((h) => ({ ...h, phase: h.phase + h.speed })));
+      animationRef.current = requestAnimationFrame(animate);
+    };
+    animationRef.current = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(animationRef.current);
+  }, []);
+
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      {hearts.map((h) => {
+        const opacity = (Math.sin(h.phase) + 1) / 2 * 0.25 + 0.05;
+        return (
+          <div
+            key={h.id}
+            className="absolute"
+            style={{
+              left: `${h.x}%`,
+              top: `${h.y}%`,
+              fontSize: `${h.size}px`,
+              opacity,
+            }}
+          >
+            ❤️
+          </div>
+        );
+      })}
+    </div>
+  );
 }
 
 export function ConfirmationContent() {
@@ -26,7 +94,7 @@ export function ConfirmationContent() {
     if (!reference) return;
 
     let attempts = 0;
-    const maxAttempts = 10; // ~20s of polling — webhook is usually near-instant, but give it room
+    const maxAttempts = 10;
 
     const interval = setInterval(async () => {
       attempts++;
@@ -70,28 +138,43 @@ export function ConfirmationContent() {
 
   if (polling) {
     return (
-      <div className="min-h-screen flex items-center justify-center px-6">
-        <p className="text-gray-500">Confirming your payment…</p>
+      <div className="relative min-h-screen flex items-center justify-center px-6 bg-gradient-to-b from-pink-50 via-white to-orange-50 overflow-hidden">
+        <AmbientHearts />
+        <motion.p
+          animate={{ opacity: [0.5, 1, 0.5] }}
+          transition={{ duration: 1.5, repeat: Infinity }}
+          className="relative text-gray-500"
+        >
+          Confirming your payment…
+        </motion.p>
       </div>
     );
   }
 
   if (order?.paymentStatus === 'failed') {
     return (
-      <div className="min-h-screen flex items-center justify-center px-6 text-center">
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="min-h-screen flex items-center justify-center px-6 text-center"
+      >
         <div>
           <p className="text-red-600 font-medium">Payment could not be confirmed.</p>
           <p className="text-gray-500 mt-2">If you were charged, contact us with reference {reference}.</p>
         </div>
-      </div>
+      </motion.div>
     );
   }
 
   if (order?.paymentStatus === 'pending') {
     return (
-      <div className="min-h-screen flex items-center justify-center px-6 text-center">
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="min-h-screen flex items-center justify-center px-6 text-center"
+      >
         <p className="text-gray-500">Still confirming — this can take a moment. Refresh in a bit.</p>
-      </div>
+      </motion.div>
     );
   }
 
@@ -102,31 +185,51 @@ export function ConfirmationContent() {
   const wishUrl = `${window.location.origin}/${order.slug}`;
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-6 py-12">
-      <div className="max-w-md w-full text-center space-y-6">
-        <h1 className="text-2xl font-bold text-gray-900">Your wish is ready 🎉</h1>
+    <div className="relative min-h-screen flex items-center justify-center px-6 py-12 bg-gradient-to-b from-pink-50 via-white to-orange-50 overflow-hidden">
+      <AmbientHearts />
 
-        {order.outputFormat === 'link' ? (
-          <div className="bg-gray-50 rounded-xl p-4 break-all text-sm text-gray-700">{wishUrl}</div>
-        ) : (
-          <QrCodeCard slug={order.slug} />
-        )}
-
-        <Button
-          variant="secondary"
-          className="w-full"
-          onClick={() => navigator.clipboard.writeText(wishUrl)}
+      <div className="relative max-w-md w-full text-center space-y-6">
+        <motion.div
+          initial={{ scale: 0.6, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ type: 'spring', stiffness: 200, damping: 15 }}
+          className="text-5xl"
         >
-          Copy link
-        </Button>
+          💌
+        </motion.div>
+
+        <motion.h1
+          initial="hidden" animate="visible" custom={0} variants={fadeUp}
+          className="text-2xl font-bold text-gray-900"
+        >
+          Your message is ready
+        </motion.h1>
+
+        <motion.div initial="hidden" animate="visible" custom={1} variants={fadeUp}>
+          {order.outputFormat === 'link' ? (
+            <div className="bg-white/80 backdrop-blur rounded-xl p-4 break-all text-sm text-gray-700 shadow-sm">{wishUrl}</div>
+          ) : (
+            <QrCodeCard slug={order.slug} />
+          )}
+        </motion.div>
+
+        <motion.div initial="hidden" animate="visible" custom={2} variants={fadeUp}>
+          <Button
+            variant="secondary"
+            className="w-full"
+            onClick={() => navigator.clipboard.writeText(wishUrl)}
+          >
+            Copy link
+          </Button>
+        </motion.div>
 
         {order.sendEmail && (
-          <div className="border-t pt-4">
+          <motion.div initial="hidden" animate="visible" custom={3} variants={fadeUp} className="border-t pt-4">
             <Button variant="secondary" onClick={handleResend} loading={resending} className="w-full">
               Resend email to {order.recipientEmail}
             </Button>
             {resendMessage && <p className="text-sm text-gray-500 mt-2">{resendMessage}</p>}
-          </div>
+          </motion.div>
         )}
       </div>
     </div>

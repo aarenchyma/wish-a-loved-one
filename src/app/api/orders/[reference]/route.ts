@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/db';
-import { OrderModel } from '@/models/Order';
+import { fulfillOrderIfPaid } from '@/lib/fulfillOrder';
 
 interface RouteParams {
   params: Promise<{ reference: string }>;
@@ -10,7 +10,7 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
   const { reference } = await params;
 
   await connectDB();
-  const order = await OrderModel.findOne({ paystackReference: reference }).lean();
+  const order = await fulfillOrderIfPaid(reference);
 
   if (!order) {
     return NextResponse.json({ error: 'Order not found' }, { status: 404 });

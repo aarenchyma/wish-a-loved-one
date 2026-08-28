@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Input } from '@/components/ui/Input';
@@ -12,6 +12,7 @@ import { VideoUpload } from './VideoUpload';
 import { PreviewModal } from './PreviewModal';
 import type { Tier, OutputFormat } from '@/types';
 import { TemplateSelector, getRandomTemplateId } from './TemplateSelector';
+import { AVAILABLE_TEMPLATE_IDS } from '@/components/templates';
 
 const fadeUp = {
   hidden: { opacity: 0, y: 16 },
@@ -36,8 +37,12 @@ export function WishForm() {
   const [mediaUrl, setMediaUrl] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [template, setTemplate] = useState(() => getRandomTemplateId());
+  const [template, setTemplate] = useState<string>(AVAILABLE_TEMPLATE_IDS[0]);
   const [previewOpen, setPreviewOpen] = useState(false);
+
+  useEffect(() => {
+    setTemplate(getRandomTemplateId());
+  }, []);
 
   const needsVideo = tier === 'text_video';
   const canSubmit =
