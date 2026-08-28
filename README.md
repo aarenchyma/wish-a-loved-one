@@ -1,36 +1,89 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Wish a Loved One
 
-## Getting Started
+Send a personalized wish for any occasion — as a shareable link, a scannable QR code, or straight to their inbox. No app required for the recipient to open it.
 
-First, run the development server:
+**Live:** [wish-a-loved-one.com](https://wish-a-loved-one.com)
+
+## What it does
+
+- Write a message (and optionally a short video) for someone
+- Pick an occasion-themed, animated design — Valentine, Birthday, Anniversary, Graduation, Wedding, New Year
+- Preview the finished page before paying
+- Pay via Paystack
+- Get a unique link and/or QR code to share, with an option to email it directly to the recipient
+
+## Pricing
+
+| Tier | Price | Includes |
+|------|-------|----------|
+| Text | ₦250 | Message + link or QR code |
+| Text + Video | ₦500 | Everything in Text, plus a personal video |
+
+## Tech stack
+
+- **Framework:** Next.js (App Router) + TypeScript
+- **Database:** MongoDB (Mongoose)
+- **Payments:** Paystack
+- **Media storage:** Cloudinary (signed client-side video uploads)
+- **Email:** Resend
+- **QR codes:** generated server-side with `qrcode`
+- **Animations:** Framer Motion
+- **Hosting:** Vercel
+
+## Getting started
+
+```bash
+git clone https://github.com/aarenchyma/wish-a-loved-one.git
+cd wish-a-loved-one
+npm install
+```
+
+Create a `.env.local` file in the project root:
+
+```env
+MONGODB_URI=
+PAYSTACK_SECRET_KEY=
+NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY=
+CLOUDINARY_CLOUD_NAME=
+CLOUDINARY_API_KEY=
+CLOUDINARY_API_SECRET=
+RESEND_API_KEY=
+NEXT_PUBLIC_SITE_URL=http://localhost:3000
+```
+
+Then run the dev server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Project structure
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```
+src/
+├── app/                  # routes (landing, create, [slug], confirmation, API routes)
+├── components/
+│   ├── forms/            # wish creation form, template selector, video upload
+│   ├── templates/        # occasion-themed wish page designs
+│   └── ui/                # shared UI primitives
+├── lib/                  # db, paystack, cloudinary, email, qrcode, slug helpers
+├── models/                # Mongoose schemas
+├── config/                # env + pricing config
+└── types/                  # shared TypeScript types
+```
 
-## Learn More
+## Webhook setup
 
-To learn more about Next.js, take a look at the following resources:
+Payments are confirmed via a Paystack webhook. In the Paystack dashboard, register:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```
+https://your-domain.com/api/paystack/webhook
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+under **Settings → API Keys & Webhooks**.
 
-## Deploy on Vercel
+## License
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Private project — all rights reserved.
