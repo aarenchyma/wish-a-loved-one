@@ -223,14 +223,14 @@ export function ConfirmationContent() {
           </Button>
         </motion.div>
 
-        {order.sendEmail && (
+        {/* {order.sendEmail && (
           <motion.div initial="hidden" animate="visible" custom={3} variants={fadeUp} className="border-t pt-4">
             <Button variant="secondary" onClick={handleResend} loading={resending} className="w-full">
               Resend email to {order.recipientEmail}
             </Button>
             {resendMessage && <p className="text-sm text-gray-500 mt-2">{resendMessage}</p>}
           </motion.div>
-        )}
+        )} */}
       </div>
     </div>
   );

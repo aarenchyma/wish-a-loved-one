@@ -127,14 +127,14 @@ export function WishForm() {
           </motion.div>
         )}
 
-        <motion.div initial="hidden" animate="visible" custom={4} variants={fadeUp} className="border-t pt-4">
+        {/* <motion.div initial="hidden" animate="visible" custom={4} variants={fadeUp} className="border-t pt-4">
           <Toggle checked={sendEmail} onChange={setSendEmail} label="Also email this to them" />
           {sendEmail && (
             <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} transition={{ duration: 0.3 }} className="mt-3">
               <Input label="Recipient's email" id="recipientEmail" type="email" value={recipientEmail} onChange={(e) => setRecipientEmail(e.target.value)} required={sendEmail} />
             </motion.div>
           )}
-        </motion.div>
+        </motion.div> */}
 
         {error && <p className="text-sm text-red-600">{error}</p>}
 
