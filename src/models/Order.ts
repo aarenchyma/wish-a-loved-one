@@ -1,7 +1,7 @@
 import { Schema, model, models } from 'mongoose';
 
 const OrderSchema = new Schema({
-  slug: { type: String, unique: true, sparse: true, default: null },
+  slug: { type: String, unique: true, sparse: true },
   tier: { type: String, enum: ['text', 'text_video'], required: true },
   senderName: { type: String, required: true },
   senderEmail: { type: String, required: true },

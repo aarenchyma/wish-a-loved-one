@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Input } from '@/components/ui/Input';
@@ -10,9 +10,9 @@ import { Toggle } from '@/components/ui/Toggle';
 import { Button } from '@/components/ui/Button';
 import { VideoUpload } from './VideoUpload';
 import { PreviewModal } from './PreviewModal';
-import type { Tier, OutputFormat } from '@/types';
-import { TemplateSelector, getRandomTemplateId } from './TemplateSelector';
+import { OccasionInput } from './OccasionInput';
 import { AVAILABLE_TEMPLATE_IDS } from '@/components/templates';
+import type { Tier, OutputFormat } from '@/types';
 
 const fadeUp = {
   hidden: { opacity: 0, y: 16 },
@@ -37,12 +37,10 @@ export function WishForm() {
   const [mediaUrl, setMediaUrl] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // fixed default on mount (avoids hydration mismatch) — OccasionInput
+  // takes over as soon as the user starts typing, no random assignment anymore
   const [template, setTemplate] = useState<string>(AVAILABLE_TEMPLATE_IDS[0]);
   const [previewOpen, setPreviewOpen] = useState(false);
-
-  useEffect(() => {
-    setTemplate(getRandomTemplateId());
-  }, []);
 
   const needsVideo = tier === 'text_video';
   const canSubmit =
@@ -50,7 +48,6 @@ export function WishForm() {
     (!needsVideo || mediaUrl) &&
     (!sendEmail || recipientEmail);
 
-  // preview only needs a message to be worth showing — not gated on the full form being valid
   const canPreview = message.trim().length > 0;
 
   async function handleSubmit(e: React.FormEvent) {
@@ -65,26 +62,27 @@ export function WishForm() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          tier,
-          senderName,
-          senderEmail,
-          recipientName,
+          tier, senderName, senderEmail, recipientName,
           recipientEmail: sendEmail ? recipientEmail : undefined,
-          message,
-          mediaUrl: mediaUrl || undefined,
-          outputFormat,
-          sendEmail,
-          template,
+          message, mediaUrl: mediaUrl || undefined,
+          outputFormat, sendEmail, template,
         }),
       });
 
       const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Something went wrong');
 
-      if (!res.ok) {
-        throw new Error(data.error || 'Something went wrong');
-      }
+      const { default: PaystackPop } = await import('@paystack/inline-js');
+      const popup = new PaystackPop();
 
-      window.location.href = data.authorizationUrl;
+      popup.resumeTransaction(data.accessCode, {
+        onSuccess: () => {
+          router.push(`/confirmation?reference=${data.reference}`);
+        },
+        onCancel: () => {
+          setSubmitting(false);
+        },
+      });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong');
       setSubmitting(false);
@@ -111,7 +109,7 @@ export function WishForm() {
         </motion.div>
 
         <motion.div initial="hidden" animate="visible" custom={2} variants={fadeUp}>
-          <TemplateSelector value={template} onChange={setTemplate} />
+          <OccasionInput templateId={template} onTemplateChange={setTemplate} />
         </motion.div>
 
         <motion.div initial="hidden" animate="visible" custom={3} variants={fadeUp} className="space-y-8">
@@ -127,6 +125,7 @@ export function WishForm() {
           </motion.div>
         )}
 
+        {/* email to them */}
         {/* <motion.div initial="hidden" animate="visible" custom={4} variants={fadeUp} className="border-t pt-4">
           <Toggle checked={sendEmail} onChange={setSendEmail} label="Also email this to them" />
           {sendEmail && (

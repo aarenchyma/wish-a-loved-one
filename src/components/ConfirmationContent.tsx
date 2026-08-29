@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { QrCodeCard } from './QrCodeCard';
 import { Button } from './ui/Button';
+import { Toast } from './ui/Toast';
 
 interface OrderStatus {
   paymentStatus: 'pending' | 'paid' | 'failed';
@@ -66,12 +67,7 @@ function AmbientHearts() {
           <div
             key={h.id}
             className="absolute"
-            style={{
-              left: `${h.x}%`,
-              top: `${h.y}%`,
-              fontSize: `${h.size}px`,
-              opacity,
-            }}
+            style={{ left: `${h.x}%`, top: `${h.y}%`, fontSize: `${h.size}px`, opacity }}
           >
             ❤️
           </div>
@@ -81,6 +77,18 @@ function AmbientHearts() {
   );
 }
 
+// small helper — both copy and resend need "flip a toast for 2s" behavior
+function useToast() {
+  const [state, setState] = useState<{ message: string; variant: 'success' | 'error' } | null>(null);
+
+  function fire(message: string, variant: 'success' | 'error' = 'success') {
+    setState({ message, variant });
+    setTimeout(() => setState(null), 2500);
+  }
+
+  return { toast: state, fire };
+}
+
 export function ConfirmationContent() {
   const searchParams = useSearchParams();
   const reference = searchParams.get('reference');
@@ -88,7 +96,8 @@ export function ConfirmationContent() {
   const [order, setOrder] = useState<OrderStatus | null>(null);
   const [polling, setPolling] = useState(true);
   const [resending, setResending] = useState(false);
-  const [resendMessage, setResendMessage] = useState<string | null>(null);
+  const { toast: copyToast, fire: fireCopyToast } = useToast();
+  const { toast: resendToast, fire: fireResendToast } = useToast();
 
   useEffect(() => {
     if (!reference) return;
@@ -111,10 +120,18 @@ export function ConfirmationContent() {
     return () => clearInterval(interval);
   }, [reference]);
 
+  async function handleCopy(wishUrl: string) {
+    try {
+      await navigator.clipboard.writeText(wishUrl);
+      fireCopyToast('Link copied to clipboard');
+    } catch {
+      fireCopyToast("Couldn't copy — copy it manually", 'error');
+    }
+  }
+
   async function handleResend() {
     if (!reference) return;
     setResending(true);
-    setResendMessage(null);
 
     try {
       const res = await fetch('/api/send-email', {
@@ -124,9 +141,13 @@ export function ConfirmationContent() {
       });
       const data = await res.json();
 
-      setResendMessage(res.ok ? 'Email sent!' : data.error || 'Failed to resend');
+      if (res.ok) {
+        fireResendToast('Email sent');
+      } else {
+        fireResendToast(data.error || 'Failed to resend email', 'error');
+      }
     } catch {
-      setResendMessage('Failed to resend');
+      fireResendToast('Failed to resend email — check your connection', 'error');
     } finally {
       setResending(false);
     }
@@ -213,22 +234,19 @@ export function ConfirmationContent() {
           )}
         </motion.div>
 
-        <motion.div initial="hidden" animate="visible" custom={2} variants={fadeUp}>
-          <Button
-            variant="secondary"
-            className="w-full"
-            onClick={() => navigator.clipboard.writeText(wishUrl)}
-          >
+        <motion.div initial="hidden" animate="visible" custom={2} variants={fadeUp} className="relative">
+          <Button variant="secondary" className="w-full" onClick={() => handleCopy(wishUrl)}>
             Copy link
           </Button>
+          <Toast show={!!copyToast} message={copyToast?.message ?? ''} variant={copyToast?.variant} />
         </motion.div>
 
         {/* {order.sendEmail && (
-          <motion.div initial="hidden" animate="visible" custom={3} variants={fadeUp} className="border-t pt-4">
+          <motion.div initial="hidden" animate="visible" custom={3} variants={fadeUp} className="relative border-t pt-4">
             <Button variant="secondary" onClick={handleResend} loading={resending} className="w-full">
               Resend email to {order.recipientEmail}
             </Button>
-            {resendMessage && <p className="text-sm text-gray-500 mt-2">{resendMessage}</p>}
+            <Toast show={!!resendToast} message={resendToast?.message ?? ''} variant={resendToast?.variant} />
           </motion.div>
         )} */}
       </div>

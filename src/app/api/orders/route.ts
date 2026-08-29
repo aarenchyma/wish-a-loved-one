@@ -71,6 +71,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       authorizationUrl: paystackRes.data.authorization_url,
+      accessCode: paystackRes.data.access_code,
       reference,
     });
   } catch (err) {
