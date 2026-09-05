@@ -23,6 +23,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return {
     title: `A wish for ${order.recipientName}`,
     description: `${order.senderName} sent you something special`,
+    robots: {
+      index: false,
+      follow: false,
+    },
   };
 }
 

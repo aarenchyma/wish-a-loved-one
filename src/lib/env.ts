@@ -14,5 +14,7 @@ export const env = {
   cloudinaryApiKey: required('CLOUDINARY_API_KEY'),
   cloudinaryApiSecret: required('CLOUDINARY_API_SECRET'),
   resendApiKey: required('RESEND_API_KEY'),
+  emailUser: required('EMAIL_USER'),
+  emailPass: required('EMAIL_PASS'),
   siteUrl: process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000',
 };

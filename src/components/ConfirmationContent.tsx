@@ -241,14 +241,14 @@ export function ConfirmationContent() {
           <Toast show={!!copyToast} message={copyToast?.message ?? ''} variant={copyToast?.variant} />
         </motion.div>
 
-        {/* {order.sendEmail && (
+        {order.sendEmail && (
           <motion.div initial="hidden" animate="visible" custom={3} variants={fadeUp} className="relative border-t pt-4">
             <Button variant="secondary" onClick={handleResend} loading={resending} className="w-full">
               Resend email to {order.recipientEmail}
             </Button>
             <Toast show={!!resendToast} message={resendToast?.message ?? ''} variant={resendToast?.variant} />
           </motion.div>
-        )} */}
+        )}
       </div>
     </div>
   );

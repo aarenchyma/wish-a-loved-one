@@ -1,15 +1,9 @@
-import nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 import { env } from './env';
 import { generateQrDataUrl } from './qrcode';
 import type { OutputFormat } from '@/types';
 
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: env.emailUser,
-    pass: env.emailPass,
-  },
-});
+const resend = new Resend(env.resendApiKey);
 
 interface SendWishEmailParams {
   to: string;
@@ -19,8 +13,6 @@ interface SendWishEmailParams {
   outputFormat: OutputFormat;
 }
 
-const FROM_ADDRESS = `"Wish A Loved One" <${env.emailUser}>`;
-
 export async function sendWishEmail({ to, senderName, recipientName, slug, outputFormat }: SendWishEmailParams) {
   const wishUrl = `${env.siteUrl}/${slug}`;
 
@@ -29,8 +21,8 @@ export async function sendWishEmail({ to, senderName, recipientName, slug, outpu
   `;
 
   if (outputFormat === 'link') {
-    return transporter.sendMail({
-      from: FROM_ADDRESS,
+    return resend.emails.send({
+      from: 'wish-a-loved-one',
       to,
       subject: `${senderName} sent ${recipientName} a wish 🎉`,
       html: `
@@ -46,8 +38,8 @@ export async function sendWishEmail({ to, senderName, recipientName, slug, outpu
   const qrDataUrl = await generateQrDataUrl(slug);
   const qrBase64 = qrDataUrl.split(',')[1];
 
-  return transporter.sendMail({
-    from: FROM_ADDRESS,
+  return resend.emails.send({
+    from: 'wishes@wish-a-loved-one.com',
     to,
     subject: `${senderName} sent ${recipientName} a wish 🎉`,
     html: `
@@ -62,8 +54,7 @@ export async function sendWishEmail({ to, senderName, recipientName, slug, outpu
       {
         filename: 'wish-qr.png',
         content: qrBase64,
-        encoding: 'base64',
-        cid: 'wish-qr',
+        contentId: 'wish-qr',
       },
     ],
   });

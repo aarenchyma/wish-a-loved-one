@@ -1,1 +1,2 @@
-also, id like to add an array of messages from wish-loved-one for the recepient, at the bottom of the message, will add this in to do, lets go for template 03 
+when .com is bought, check the following, 
+robots.ts, sitemap.ts, opengraph-images, StructuredData to change .vercel.app to .com

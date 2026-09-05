@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
+import { StructuredData } from '@/components/StructuredData'; 
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
@@ -84,6 +85,8 @@ export default function LandingPage() {
           </motion.div>
         ))}
       </div>
+
+      <StructuredData />
 
       {/* Floating decorative blobs */}
       <div className="absolute top-0 left-0 w-48 sm:w-72 h-48 sm:h-72 bg-pink-200 rounded-full blur-3xl opacity-40 -translate-x-1/2 -translate-y-1/2 animate-pulse pointer-events-none" />
